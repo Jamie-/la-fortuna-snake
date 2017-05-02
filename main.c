@@ -46,16 +46,19 @@ void init() {
   init_lcd();
   /* Setup input pins */
   PORTC |= SWW | SWS | SWE | SWN;
+  PORTE |= SWC;
 
   /* Setup game loop timer */
   TCCR0A = _BV(WGM01);  /* CTC Mode */
   TCCR0B = _BV(CS01) | _BV(CS00); /* Prescaler: F_CPU / 64 */
   OCR0A = (uint8_t)(F_CPU / (64.0 * 1000) - 1); /* 1 ms */
   TIMSK0 |= _BV(OCIE0A);  /* Enable timer interrupt */
+}
 
-  /* Set font colouring */
-  set_fg(BLACK);
-  set_bg(GREEN);
+/* Draw splash screen */
+void drawSplash() {
+  printf("Welcome to Snake!\n\n");
+  printf("Press the center button to start.");
 }
 
 /* Fill body of snake in given tile */
@@ -85,27 +88,48 @@ void drawWalls() {
 /* Main loop */
 void main() {
   init();
-  drawWalls();
 
-  sei(); /* Enable global interupts */
-  /* Button scanning Loop */
-  do {
-    if (NORTH_PRESSED) d = NORTH;
-    if (SOUTH_PRESSED) d = SOUTH;
-    if (EAST_PRESSED) d = EAST;
-    if (WEST_PRESSED) d = WEST;
-    _delay_ms(10);
-  } while (x < grid_width-1 && x > 0 && y < grid_height-1 && y > 0);
-  cli(); /* Disable global interupts */
-
-  /* Game Over */
-  set_bg(BLACK);
-  set_fg(YELLOW);
+  drawSplash();
+  do {} while (!CENTER_PRESSED);
   clear_screen();
-  display_move(130, 100);
-  printf("Game Over!");
-  display_move(135, 120);
-  printf("Score: %d", score);
+
+  for (;;) {
+    drawWalls();
+    /* Set font colouring */
+    set_fg(BLACK);
+    set_bg(GREEN);
+
+    sei(); /* Enable global interupts */
+    /* Button scanning loop */
+    do {
+      if (NORTH_PRESSED) d = NORTH;
+      if (SOUTH_PRESSED) d = SOUTH;
+      if (EAST_PRESSED) d = EAST;
+      if (WEST_PRESSED) d = WEST;
+      _delay_ms(10);
+    } while (x < grid_width-1 && x > 0 && y < grid_height-1 && y > 0);
+    cli(); /* Disable global interupts */
+
+    /* Game Over */
+    set_bg(BLACK);
+    set_fg(YELLOW);
+    clear_screen();
+    display_move(130, 80);
+    printf("Game Over!");
+    display_move(135, 100);
+    set_fg(WHITE);
+    printf("Score: %d", score);
+    set_fg(YELLOW);
+    display_move(50, 120);
+    printf("Press the centre button to play again.");
+
+    /* Wait for user to restart game */
+    do {} while (!CENTER_PRESSED);
+    clear_screen();
+    x=5;y=5;px=1;py=1;fx=0;fy=0;
+    score = 0;
+    d = EAST;
+  }
 }
 
 /* Game Loop */
