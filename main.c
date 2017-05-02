@@ -1,5 +1,6 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
+#include <stdlib.h> //rand
 #include "printf/printf.h"
 #include "draw.h"
 #include "input.h"
@@ -15,9 +16,13 @@ const uint8_t grid_height = LCDWIDTH / TILESIZE;
 
 /* Position values */
 volatile uint8_t x = 5;  /* Current x value */
-volatile uint8_t y = 5; /* Current y value */
+volatile uint8_t y = 5;  /* Current y value */
 volatile uint8_t px = 1; /* Previous x value */
 volatile uint8_t py = 1; /* Previous y value */
+volatile uint8_t fx = 0; /* Food x location */
+volatile uint8_t fy = 0; /* Food y location */
+
+volatile uint8_t score = 0;
 
 volatile unsigned long tmillis = 0UL; /* Used to count milliseconds for game loop */
 
@@ -47,16 +52,25 @@ void init() {
   TCCR0B = _BV(CS01) | _BV(CS00); /* Prescaler: F_CPU / 64 */
   OCR0A = (uint8_t)(F_CPU / (64.0 * 1000) - 1); /* 1 ms */
   TIMSK0 |= _BV(OCIE0A);  /* Enable timer interrupt */
+
+  /* Set font colouring */
+  set_fg(BLACK);
+  set_bg(GREEN);
 }
 
 /* Fill body of snake in given tile */
 void fillBody(uint8_t gx, uint8_t gy) {
-  fillSquare(10 * gx, 10 * gy, TILESIZE, ORANGE);
+  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, ORANGE);
+}
+
+/* Draw food in given tile */
+void drawFood(uint8_t gx, uint8_t gy) {
+  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, DARK_RED);
 }
 
 /* Clears a given tile */
 void clearTile(uint8_t gx, uint8_t gy) {
-  fillSquare(10 * gx, 10 * gy, TILESIZE, BLACK);
+  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, BLACK);
 }
 
 /* Draw game walls */
@@ -84,21 +98,44 @@ void main() {
   } while (x < grid_width-1 && x > 0 && y < grid_height-1 && y > 0);
   cli(); /* Disable global interupts */
 
-  /* Game Over*/
+  /* Game Over */
+  set_bg(BLACK);
+  set_fg(YELLOW);
   clear_screen();
+  display_move(130, 100);
   printf("Game Over!");
+  display_move(135, 120);
+  printf("Score: %d", score);
 }
 
 /* Game Loop */
 ISR( TIMER0_COMPA_vect ) {
   cli();
   if (tmillis >= LOOPSPEED) {
+    display_move(TILESIZE * 10, 1);
+    printf("Score: %d", score);
+
+    if (fx == 0 && fy == 0) {
+      /* Place new food */
+      fx = rand() / (RAND_MAX / grid_width) + 1;
+      fy = rand() / (RAND_MAX / grid_height) + 1;
+    }
+    if (x == fx && y == fy) {
+      score++;
+      fx = 0;
+      fy = 0;
+    }
+
     clearTile(px, py);
+    if (fx != 0 && fy != 0) drawFood(fx, fy);
     fillBody(x, y);
+    //printScore();
+
     if (DEBUG) {
       display_move(0, 0);
       printf("X: %d, Y: %d",x ,y);
     }
+
     px = x;
     py = y;
     if (d == EAST) x++;
