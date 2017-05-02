@@ -57,7 +57,16 @@ void init() {
 
 /* Draw splash screen */
 void drawSplash() {
-  printf("Welcome to Snake!\n\n");
+  display_move(0, 60);
+  printf("  _________ _______      _____   ____  __.___________\n");
+  printf("/   _____/ \\      \\    /  _  \\ |    |/ _|\\_   _____/\n");
+  printf("\\_____  \\  /   |   \\  /  /_\\  \\|      <   |    __)_\n");
+  printf("/        \\/    |    \\/    |    \\    |  \\  |        \\\n");
+  printf("/_______  /\\____|__  /\\____|__  /____|__ \\/_______  /\n");
+  printf("        \\/         \\/         \\/        \\/        \\/");
+  display_move(110, 160);
+  printf("Welcome to Snake!");
+  display_move(60, 180);
   printf("Press the center button to start.");
 }
 
@@ -112,14 +121,14 @@ void main() {
 
     /* Game Over */
     set_bg(BLACK);
-    set_fg(YELLOW);
+    set_fg(WHITE);
     clear_screen();
     display_move(130, 80);
     printf("Game Over!");
     display_move(135, 100);
-    set_fg(WHITE);
-    printf("Score: %d", score);
     set_fg(YELLOW);
+    printf("Score: %d", score);
+    set_fg(WHITE);
     display_move(50, 120);
     printf("Press the centre button to play again.");
 
@@ -136,7 +145,7 @@ void main() {
 ISR( TIMER0_COMPA_vect ) {
   cli();
   if (tmillis >= LOOPSPEED) {
-    display_move(TILESIZE * 10, 1);
+    display_move(140, 1);
     printf("Score: %d", score);
 
     if (fx == 0 && fy == 0) {
