@@ -10,5 +10,5 @@ void fillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t col) {
 }
 
 void fillSquare(uint16_t x, uint16_t y, uint16_t s, uint16_t col) {
-  fillRect(x, y, s, s, col);
+  fillRect(x, y, s-1, s-1, col);
 }

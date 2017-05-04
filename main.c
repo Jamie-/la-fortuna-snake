@@ -26,6 +26,34 @@ volatile uint8_t score = 0;
 
 volatile unsigned long tmillis = 0UL; /* Used to count milliseconds for game loop */
 
+/* TAIL QUEUE */
+#define maxTail 40
+typedef struct {
+  uint8_t x;
+  uint8_t y;
+} Position;
+
+Position tailArray[maxTail];
+int tFront = 0;
+int tRear = -1;
+int tLength = 0;
+
+void addTail(Position p) {
+  if (tLength < maxTail) {
+    if (tRear == maxTail - 1) tRear = -1;
+    tailArray[++tRear] = p;
+    tLength++;
+  }
+}
+
+Position pollTail() {
+  Position p = tailArray[tFront++];
+  if (tFront == maxTail) tFront = 0;
+  tLength--;
+  return p;
+}
+/* /TAIL QUEUE */
+
 /* Current snake movement direction */
 enum direction {
   NORTH,
@@ -36,6 +64,8 @@ enum direction {
 
 /* Current direction of movement */
 volatile enum direction d = EAST;
+/* Previous direction */
+volatile enum direction pd = EAST;
 
 /* Pre-loop initialisation code */
 void init() {
@@ -89,9 +119,9 @@ void clearTile(uint8_t gx, uint8_t gy) {
 void drawWalls() {
   uint16_t col = GREEN;
   fillRect(0, 0, grid_width * TILESIZE - 1, TILESIZE - 1, col);
-  fillRect(0, grid_height * TILESIZE - TILESIZE + 1, grid_width * TILESIZE, TILESIZE, col);
+  fillRect(0, grid_height * TILESIZE - TILESIZE, grid_width * TILESIZE, TILESIZE, col);
   fillRect(0, 0, TILESIZE - 1, grid_height * TILESIZE - 1, col);
-  fillRect(grid_width * TILESIZE - TILESIZE + 1, 0, TILESIZE, grid_height * TILESIZE, col);
+  fillRect(grid_width * TILESIZE - TILESIZE, 0, TILESIZE, grid_height * TILESIZE, col);
 }
 
 /* Main loop */
@@ -108,13 +138,18 @@ void main() {
     set_fg(BLACK);
     set_bg(GREEN);
 
+    Position start;
+    start.x = x;
+    start.y = y;
+    addTail(start);
+
     sei(); /* Enable global interupts */
     /* Button scanning loop */
     do {
-      if (NORTH_PRESSED) d = NORTH;
-      if (SOUTH_PRESSED) d = SOUTH;
-      if (EAST_PRESSED) d = EAST;
-      if (WEST_PRESSED) d = WEST;
+      if (NORTH_PRESSED && d != SOUTH) d = NORTH;
+      if (SOUTH_PRESSED && d != NORTH) d = SOUTH;
+      if (EAST_PRESSED && d != WEST)   d = EAST;
+      if (WEST_PRESSED && d != EAST)   d = WEST;
       _delay_ms(10);
     } while (x < grid_width-1 && x > 0 && y < grid_height-1 && y > 0);
     cli(); /* Disable global interupts */
@@ -138,6 +173,9 @@ void main() {
     x=5;y=5;px=1;py=1;fx=0;fy=0;
     score = 0;
     d = EAST;
+    tFront = 0;
+    tRear = -1;
+    tLength = 0;
   }
 }
 
@@ -145,6 +183,16 @@ void main() {
 ISR( TIMER0_COMPA_vect ) {
   cli();
   if (tmillis >= LOOPSPEED) {
+    if (
+      d == NORTH && pd == SOUTH ||
+      d == SOUTH && pd == NORTH ||
+      d == WEST && pd == EAST ||
+      d == EAST && pd == WEST
+    ) {
+      d = pd;
+    } else {
+      pd = d;
+    }
     display_move(140, 1);
     printf("Score: %d", score);
 
@@ -157,11 +205,17 @@ ISR( TIMER0_COMPA_vect ) {
       score++;
       fx = 0;
       fy = 0;
+    } else {
+      Position p = pollTail();
+      clearTile(p.x, p.y);
     }
-
-    clearTile(px, py);
+    //clearTile(px, py);
     if (fx != 0 && fy != 0) drawFood(fx, fy);
     fillBody(x, y);
+    Position h;
+    h.x = x;
+    h.y = y;
+    addTail(h);
     //printScore();
 
     if (DEBUG) {
