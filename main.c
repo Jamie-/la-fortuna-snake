@@ -193,6 +193,8 @@ ISR( TIMER0_COMPA_vect ) {
     } else {
       pd = d;
     }
+
+    /* Update score */
     display_move(140, 1);
     printf("Score: %d", score);
 
@@ -201,6 +203,8 @@ ISR( TIMER0_COMPA_vect ) {
       fx = rand() / (RAND_MAX / grid_width) + 1;
       fy = rand() / (RAND_MAX / grid_height) + 1;
     }
+
+    /* Perform food detection (i.e. eat food!)*/
     if (x == fx && y == fy) {
       score++;
       fx = 0;
@@ -209,20 +213,22 @@ ISR( TIMER0_COMPA_vect ) {
       Position p = pollTail();
       clearTile(p.x, p.y);
     }
-    //clearTile(px, py);
+
+    /* Update positions of objects on screen */
     if (fx != 0 && fy != 0) drawFood(fx, fy);
     fillBody(x, y);
     Position h;
     h.x = x;
     h.y = y;
     addTail(h);
-    //printScore();
 
+    /* Print current position to screen */
     if (DEBUG) {
       display_move(0, 0);
       printf("X: %d, Y: %d",x ,y);
     }
 
+    /* Handle movement*/
     px = x;
     py = y;
     if (d == EAST) x++;
