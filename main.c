@@ -184,10 +184,10 @@ ISR( TIMER0_COMPA_vect ) {
   cli();
   if (tmillis >= LOOPSPEED) {
     if (
-      d == NORTH && pd == SOUTH ||
-      d == SOUTH && pd == NORTH ||
-      d == WEST && pd == EAST ||
-      d == EAST && pd == WEST
+      (d == NORTH && pd == SOUTH) ||
+      (d == SOUTH && pd == NORTH) ||
+      (d == WEST && pd == EAST) ||
+      (d == EAST && pd == WEST)
     ) {
       d = pd;
     } else {
