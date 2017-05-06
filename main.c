@@ -164,15 +164,64 @@ void main() {
       fy = rand() % (grid_height - 2) + 1;
     } while (isTileInBody(x, y));
 
-    sei(); /* Enable global interupts */
-    /* Button scanning loop */
+    sei(); /* Enable global interupts for button checking */
+
+    /* Game loop */
     do {
-      if (NORTH_PRESSED && d != SOUTH) d = NORTH;
-      if (SOUTH_PRESSED && d != NORTH) d = SOUTH;
-      if (EAST_PRESSED && d != WEST)   d = EAST;
-      if (WEST_PRESSED && d != EAST)   d = WEST;
-      _delay_ms(10);
+      /* Run direction checks */
+      if (
+        (d == NORTH && pd == SOUTH) ||
+        (d == SOUTH && pd == NORTH) ||
+        (d == WEST && pd == EAST) ||
+        (d == EAST && pd == WEST)
+      ) {
+        d = pd;
+      } else {
+        pd = d;
+      }
+      /* Perform food detection (i.e. eat food!) */
+      if (x == fx && y == fy) {
+        score++;
+        do { /* Place new food - making sure not under snake */
+          fx = rand() % (grid_width - 2) + 1;
+          fy = rand() % (grid_height - 2) + 1;
+        } while (isTileInBody(fx, fy));
+      } else {
+        Position p = pollTail();
+        clearTile(p.x, p.y);
+      }
+
+      /* Update positions of objects on screen */
+      drawFood(fx, fy);
+      fillBody(x, y);
+      Position h;
+      h.x = x;
+      h.y = y;
+      addTail(h);
+
+      /* Update score */
+      display_move(140, 1);
+      printf("Score: %d", score);
+
+      /* Print current position to screen */
+      if (DEBUG) {
+        display_move(1, 1);
+        printf("X: %d, Y: %d  ",fx ,fy);
+      }
+
+      /* Run tail collision detection */
+      gameOver = isTileInBody(x, y);
+
+      /* Handle movement*/
+      px = x;
+      py = y;
+      if (d == EAST) x++;
+      if (d == SOUTH) y++;
+      if (d == NORTH) y--;
+      if (d == WEST) x--;
+      _delay_ms(LOOPSPEED);
     } while (x < grid_width-1 && x > 0 && y < grid_height-1 && y > 0 && !gameOver);
+
     cli(); /* Disable global interupts */
 
     /* Game Over */
@@ -202,69 +251,15 @@ void main() {
   }
 }
 
-/* Game Loop */
+/* Button scanning interrupt every 1ms */
 ISR( TIMER0_COMPA_vect ) {
   cli();
-  if (tmillis >= LOOPSPEED) {
-    /* Run direction checks */
-    if (
-      (d == NORTH && pd == SOUTH) ||
-      (d == SOUTH && pd == NORTH) ||
-      (d == WEST && pd == EAST) ||
-      (d == EAST && pd == WEST)
-    ) {
-      d = pd;
-    } else {
-      pd = d;
-    }
-    /* Perform food detection (i.e. eat food!) */
-    if (x == fx && y == fy) {
-      score++;
-      do { /* Place new food - making sure not under snake */
-        fx = rand() % (grid_width - 2) + 1;
-        fy = rand() % (grid_height - 2) + 1;
-      } while (isTileInBody(fx, fy));
-    } else {
-      Position p = pollTail();
-      clearTile(p.x, p.y);
-    }
-
-    /* Update positions of objects on screen */
-    drawFood(fx, fy);
-    fillBody(x, y);
-    Position h;
-    h.x = x;
-    h.y = y;
-    addTail(h);
-
-    /* Update score */
-    display_move(140, 1);
-    printf("Score: %d", score);
-
-    /* Print current position to screen */
-    if (DEBUG) {
-      display_move(1, 1);
-      printf("X: %d, Y: %d  ",fx ,fy);
-    }
-
-    /* Run tail collision detection */
-    gameOver = isTileInBody(x, y);
-
-    /* Handle movement*/
-    px = x;
-    py = y;
-    if (d == EAST) x++;
-    if (d == SOUTH) y++;
-    if (d == NORTH) y--;
-    if (d == WEST) x--;
-    tmillis = 0;
-  } else {
-    tmillis++;
-  }
+  if (NORTH_PRESSED && d != SOUTH) d = NORTH;
+  if (SOUTH_PRESSED && d != NORTH) d = SOUTH;
+  if (EAST_PRESSED && d != WEST)   d = EAST;
+  if (WEST_PRESSED && d != EAST)   d = WEST;
   sei();
 }
-
-
 
 
 
