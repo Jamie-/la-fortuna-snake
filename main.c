@@ -173,6 +173,7 @@ void main() {
     x=5;y=5;px=1;py=1;fx=0;fy=0;
     score = 0;
     d = EAST;
+    pd = EAST;
     tFront = 0;
     tRear = -1;
     tLength = 0;
