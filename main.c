@@ -124,7 +124,7 @@ void drawWalls() {
   fillRect(grid_width * TILESIZE - TILESIZE, 0, TILESIZE, grid_height * TILESIZE, col);
 }
 
-/* Main loop */
+/* Main */
 void main() {
   init();
 
