@@ -1,6 +1,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdlib.h> //rand
+#include <stdbool.h>
 #include "printf/printf.h"
 #include "draw.h"
 #include "input.h"
@@ -23,6 +24,7 @@ volatile uint8_t fx = 0; /* Food x location */
 volatile uint8_t fy = 0; /* Food y location */
 
 volatile uint8_t score = 0;
+volatile bool gameOver = false;
 
 volatile unsigned long tmillis = 0UL; /* Used to count milliseconds for game loop */
 
@@ -85,6 +87,21 @@ void init() {
   TIMSK0 |= _BV(OCIE0A);  /* Enable timer interrupt */
 }
 
+/* Check if tile is in snake body */
+bool isTileInBody(uint8_t gx, uint8_t gy) {
+  bool hitTail = false;
+  uint8_t count = 0;
+  uint8_t i = tFront;
+  while (count < tLength - 1 && !hitTail) {
+    Position c = tailArray[i];
+    hitTail = c.x == gx && c.y == gy;
+    i++;
+    if (i >= maxTail) i = 0;
+    count++;
+  }
+  return hitTail;
+}
+
 /* Draw splash screen */
 void drawSplash() {
   display_move(0, 60);
@@ -142,6 +159,10 @@ void main() {
     start.x = x;
     start.y = y;
     addTail(start);
+    do { /* Place food - making sure not under snake */
+      fx = rand() % (grid_width - 2) + 1;
+      fy = rand() % (grid_height - 2) + 1;
+    } while (isTileInBody(x, y));
 
     sei(); /* Enable global interupts */
     /* Button scanning loop */
@@ -151,7 +172,7 @@ void main() {
       if (EAST_PRESSED && d != WEST)   d = EAST;
       if (WEST_PRESSED && d != EAST)   d = WEST;
       _delay_ms(10);
-    } while (x < grid_width-1 && x > 0 && y < grid_height-1 && y > 0);
+    } while (x < grid_width-1 && x > 0 && y < grid_height-1 && y > 0 && !gameOver);
     cli(); /* Disable global interupts */
 
     /* Game Over */
@@ -177,6 +198,7 @@ void main() {
     tFront = 0;
     tRear = -1;
     tLength = 0;
+    gameOver = false;
   }
 }
 
@@ -184,6 +206,7 @@ void main() {
 ISR( TIMER0_COMPA_vect ) {
   cli();
   if (tmillis >= LOOPSPEED) {
+    /* Run direction checks */
     if (
       (d == NORTH && pd == SOUTH) ||
       (d == SOUTH && pd == NORTH) ||
@@ -194,40 +217,38 @@ ISR( TIMER0_COMPA_vect ) {
     } else {
       pd = d;
     }
-
-    /* Update score */
-    display_move(140, 1);
-    printf("Score: %d", score);
-
-    if (fx == 0 && fy == 0) {
-      /* Place new food */
-      fx = rand() / (RAND_MAX / grid_width) + 1;
-      fy = rand() / (RAND_MAX / grid_height) + 1;
-    }
-
-    /* Perform food detection (i.e. eat food!)*/
+    /* Perform food detection (i.e. eat food!) */
     if (x == fx && y == fy) {
       score++;
-      fx = 0;
-      fy = 0;
+      do { /* Place new food - making sure not under snake */
+        fx = rand() % (grid_width - 2) + 1;
+        fy = rand() % (grid_height - 2) + 1;
+      } while (isTileInBody(fx, fy));
     } else {
       Position p = pollTail();
       clearTile(p.x, p.y);
     }
 
     /* Update positions of objects on screen */
-    if (fx != 0 && fy != 0) drawFood(fx, fy);
+    drawFood(fx, fy);
     fillBody(x, y);
     Position h;
     h.x = x;
     h.y = y;
     addTail(h);
 
+    /* Update score */
+    display_move(140, 1);
+    printf("Score: %d", score);
+
     /* Print current position to screen */
     if (DEBUG) {
-      display_move(0, 0);
-      printf("X: %d, Y: %d",x ,y);
+      display_move(1, 1);
+      printf("X: %d, Y: %d  ",fx ,fy);
     }
+
+    /* Run tail collision detection */
+    gameOver = isTileInBody(x, y);
 
     /* Handle movement*/
     px = x;
