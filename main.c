@@ -227,7 +227,8 @@ void main() {
     /* Game Over */
     set_bg(BLACK);
     set_fg(WHITE);
-    clear_screen();
+    drawWalls();
+    //clear_screen();
     display_move(130, 80);
     printf("Game Over!");
     display_move(135, 100);
