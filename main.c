@@ -8,7 +8,6 @@
 
 /* Game definitions */
 #define TILESIZE 10
-#define LOOPSPEED 200
 #define DEBUG 0
 
 /* Height and width are swapped to make landscape */
@@ -219,7 +218,12 @@ void main() {
       if (d == SOUTH) y++;
       if (d == NORTH) y--;
       if (d == WEST) x--;
-      _delay_ms(LOOPSPEED);
+
+      /* Speed up game as score increases */
+      if (score <= 5) _delay_ms(250);
+      else if (score <= 10) _delay_ms(200);
+      else if (score <= 15) _delay_ms(150);
+      else _delay_ms(100);
     } while (x < grid_width-1 && x > 0 && y < grid_height-1 && y > 0 && !gameOver);
 
     cli(); /* Disable global interupts */
