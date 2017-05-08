@@ -25,6 +25,8 @@ volatile uint8_t fy = 0; /* Food y location */
 
 volatile uint8_t score = 0;
 volatile bool gameOver = false;
+volatile bool paused = false;
+volatile bool centre = false;
 
 volatile unsigned long tmillis = 0UL; /* Used to count milliseconds for game loop */
 
@@ -164,7 +166,9 @@ void main() {
       fy = rand() % (grid_height - 2) + 1;
     } while (isTileInBody(x, y));
 
+    _delay_ms(100); /* Wait to allow user to release button so game doesn't start paused */
     sei(); /* Enable global interupts for button checking */
+    //bool centreToggle = false;
 
     /* Game loop */
     do {
@@ -185,7 +189,7 @@ void main() {
         do { /* Place new food - making sure not under snake */
           fx = rand() % (grid_width - 2) + 1;
           fy = rand() % (grid_height - 2) + 1;
-        } while (isTileInBody(fx, fy));
+        } while (isTileInBody(fx, fy) || (x == fx && y == fy));
       } else {
         Position p = pollTail();
         clearTile(p.x, p.y);
@@ -219,7 +223,23 @@ void main() {
       if (d == SOUTH) y++;
       if (d == NORTH) y--;
       if (d == WEST) x--;
-      _delay_ms(LOOPSPEED);
+
+      do {
+        if (centre) {
+          //centreToggle = true;
+          paused = !paused;
+          set_fg(WHITE);
+          set_bg(BLACK);
+          display_move(30, 30);
+          printf("GAME PAUSED!");
+        } else {
+          //centreToggle = false;
+          drawFood(fx, fy);
+          fillBody(x, y);
+        }
+
+        _delay_ms(LOOPSPEED);
+      } while (paused);
     } while (x < grid_width-1 && x > 0 && y < grid_height-1 && y > 0 && !gameOver);
 
     cli(); /* Disable global interupts */
@@ -248,16 +268,20 @@ void main() {
     tRear = -1;
     tLength = 0;
     gameOver = false;
+    paused = false;
   }
 }
 
 /* Button scanning interrupt every 1ms */
 ISR( TIMER0_COMPA_vect ) {
   cli();
-  if (NORTH_PRESSED && d != SOUTH) d = NORTH;
-  if (SOUTH_PRESSED && d != NORTH) d = SOUTH;
-  if (EAST_PRESSED && d != WEST)   d = EAST;
-  if (WEST_PRESSED && d != EAST)   d = WEST;
+  centre = CENTER_PRESSED;
+  if (!paused) {
+    if (NORTH_PRESSED && d != SOUTH) d = NORTH;
+    if (SOUTH_PRESSED && d != NORTH) d = SOUTH;
+    if (EAST_PRESSED && d != WEST)   d = EAST;
+    if (WEST_PRESSED && d != EAST)   d = WEST;
+  }
   sei();
 }
 
