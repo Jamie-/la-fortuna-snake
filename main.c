@@ -205,7 +205,7 @@ void main() {
       /* Print current position to screen */
       if (DEBUG) {
         display_move(1, 1);
-        printf("X: %d, Y: %d  ",fx ,fy);
+        printf("X: %d, Y: %d  ", fx, fy);
       }
 
       /* Run tail collision detection */
