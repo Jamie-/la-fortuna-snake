@@ -22,6 +22,13 @@ volatile uint8_t py = 1; /* Previous y value */
 volatile uint8_t fx = 0; /* Food x location */
 volatile uint8_t fy = 0; /* Food y location */
 
+/* Shroom variables */
+uint8_t sx = 0;      /* Shroom x location */
+uint8_t sy = 0;      /* Shroom y location */
+uint8_t shroomTimeout = 0;    /* Cycles until shroom respawns */
+uint8_t shroomCycleCount = 0; /* Cycles since last shroom respawn */
+bool showShroom = false;      /* Shroom shown */
+
 volatile uint8_t score = 0;
 volatile bool gameOver = false;
 
@@ -168,6 +175,8 @@ void main() {
       fy = rand() % (grid_height - 2) + 1;
     } while (isTileInBody(x, y));
 
+    shroomTimeout = rand() % 30 + 1; /* Set shroom timeout */
+
     sei(); /* Enable global interupts for button checking */
 
     /* Game loop */
@@ -195,9 +204,23 @@ void main() {
         clearTile(p.x, p.y);
       }
 
+      /* Check shroom timeout */
+      if (shroomCycleCount == shroomTimeout) {
+        if (showShroom) clearTile(sx, sy); /* Clear old shroom sprite */
+        showShroom = !showShroom; /* Toggle show shroom */
+        do { /* Place new food - making sure not under snake */
+          sx = rand() % (grid_width - 2) + 1;
+          sy = rand() % (grid_height - 2) + 1;
+        } while (isTileInBody(fx, fy));
+        shroomTimeout = rand() % 40 + 1;
+        shroomCycleCount = 0;
+      } else {
+        shroomCycleCount++;
+      }
+
       /* Update positions of objects on screen */
-      drawFood(fx, fy);
       drawApple(fx, fy);
+      if (showShroom) drawShroom(sx, sy);
       if (tLength > 0) fillBody(px, py);
       fillHead(x, y);
       Position h;
@@ -215,8 +238,8 @@ void main() {
         printf("X: %d, Y: %d  ",fx ,fy);
       }
 
-      /* Run tail collision detection */
-      gameOver = isTileInBody(x, y);
+      gameOver = isTileInBody(x, y); /* Run tail collision detection */
+      gameOver = x == sx && y == sy; /* Shroom check */
 
       /* Handle movement*/
       px = x;
@@ -260,6 +283,8 @@ void main() {
     tRear = -1;
     tLength = 0;
     gameOver = false;
+    showShroom = false;
+    shroomCycleCount = 0;
   }
 }
 
