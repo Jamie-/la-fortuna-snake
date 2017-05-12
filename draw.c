@@ -64,6 +64,7 @@ void drawWalls() {
   fillRect(grid_width * TILESIZE - TILESIZE, 0, TILESIZE, grid_height * TILESIZE, col);
 }
 
+/* Draw sprite from colour array to screen */
 void drawSprite(uint16_t x, uint16_t y, const uint16_t *sprite) {
   x *= TILESIZE;
   y *= TILESIZE;
@@ -79,10 +80,12 @@ void drawSprite(uint16_t x, uint16_t y, const uint16_t *sprite) {
   }
 }
 
+/* Draw apple sprite */
 void drawApple(uint16_t x, uint16_t y) {
   drawSprite(x, y, apple_sprite);
 }
 
+/* Draw shroom sprite */
 void drawShroom(uint16_t x, uint16_t y) {
   drawSprite(x, y, shroom_sprite);
 }

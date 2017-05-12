@@ -1,3 +1,6 @@
+/***************
+  GAME SPRITES
+***************/
 
 /* Apple Sprite */
 const uint16_t apple_sprite[100] = {
