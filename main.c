@@ -197,6 +197,7 @@ void main() {
 
       /* Update positions of objects on screen */
       drawFood(fx, fy);
+      drawApple(fx, fy);
       if (tLength > 0) fillBody(px, py);
       fillHead(x, y);
       Position h;
