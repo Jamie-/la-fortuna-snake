@@ -37,3 +37,6 @@ void drawApple(uint16_t x, uint16_t y) {
   drawSprite(x, y, apple_sprite);
 }
 
+void drawShroom(uint16_t x, uint16_t y) {
+  drawSprite(x, y, shroom_sprite);
+}
