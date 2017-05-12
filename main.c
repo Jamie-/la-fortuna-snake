@@ -116,6 +116,11 @@ void drawSplash() {
   printf("Press the center button to start.");
 }
 
+/* Fill head of snake in given tile */
+void fillHead(uint8_t gx, uint8_t gy) {
+  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, ORANGE_RED);
+}
+
 /* Fill body of snake in given tile */
 void fillBody(uint8_t gx, uint8_t gy) {
   fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, ORANGE);
@@ -192,7 +197,8 @@ void main() {
 
       /* Update positions of objects on screen */
       drawFood(fx, fy);
-      fillBody(x, y);
+      if (tLength > 0) fillBody(px, py);
+      fillHead(x, y);
       Position h;
       h.x = x;
       h.y = y;
