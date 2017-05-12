@@ -2,17 +2,10 @@
 #include <util/delay.h>
 #include <stdlib.h> //rand
 #include <stdbool.h>
-#include "printf/printf.h"
 #include "draw.h"
 #include "input.h"
 
-/* Game definitions */
-#define TILESIZE 10
-#define DEBUG 0
-
-/* Height and width are swapped to make landscape */
-const uint8_t grid_width = LCDHEIGHT / TILESIZE;
-const uint8_t grid_height = LCDWIDTH / TILESIZE;
+#define DEBUG 0 /* Debug mode, set to 1 for debug data */
 
 /* Position values */
 volatile uint8_t x = 5;  /* Current x value */
@@ -106,50 +99,6 @@ bool isTileInBody(uint8_t gx, uint8_t gy) {
     count++;
   }
   return hitTail;
-}
-
-/* Draw splash screen */
-void drawSplash() {
-  display_move(0, 60);
-  printf("  _________ _______      _____   ____  __.___________\n");
-  printf("/   _____/ \\      \\    /  _  \\ |    |/ _|\\_   _____/\n");
-  printf("\\_____  \\  /   |   \\  /  /_\\  \\|      <   |    __)_\n");
-  printf("/        \\/    |    \\/    |    \\    |  \\  |        \\\n");
-  printf("/_______  /\\____|__  /\\____|__  /____|__ \\/_______  /\n");
-  printf("        \\/         \\/         \\/        \\/        \\/");
-  display_move(110, 160);
-  printf("Welcome to Snake!");
-  display_move(60, 180);
-  printf("Press the center button to start.");
-}
-
-/* Fill head of snake in given tile */
-void fillHead(uint8_t gx, uint8_t gy) {
-  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, ORANGE_RED);
-}
-
-/* Fill body of snake in given tile */
-void fillBody(uint8_t gx, uint8_t gy) {
-  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, ORANGE);
-}
-
-/* Draw food in given tile */
-void drawFood(uint8_t gx, uint8_t gy) {
-  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, DARK_RED);
-}
-
-/* Clears a given tile */
-void clearTile(uint8_t gx, uint8_t gy) {
-  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, BLACK);
-}
-
-/* Draw game walls */
-void drawWalls() {
-  uint16_t col = GREEN;
-  fillRect(0, 0, grid_width * TILESIZE - 1, TILESIZE - 1, col);
-  fillRect(0, grid_height * TILESIZE - TILESIZE, grid_width * TILESIZE, TILESIZE, col);
-  fillRect(0, 0, TILESIZE - 1, grid_height * TILESIZE - 1, col);
-  fillRect(grid_width * TILESIZE - TILESIZE, 0, TILESIZE, grid_height * TILESIZE, col);
 }
 
 /* Main */
