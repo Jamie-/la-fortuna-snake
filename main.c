@@ -2,17 +2,10 @@
 #include <util/delay.h>
 #include <stdlib.h> //rand
 #include <stdbool.h>
-#include "printf/printf.h"
 #include "draw.h"
 #include "input.h"
 
-/* Game definitions */
-#define TILESIZE 10
-#define DEBUG 0
-
-/* Height and width are swapped to make landscape */
-const uint8_t grid_width = LCDHEIGHT / TILESIZE;
-const uint8_t grid_height = LCDWIDTH / TILESIZE;
+#define DEBUG 0 /* Debug mode, set to 1 for debug data */
 
 /* Position values */
 volatile uint8_t x = 5;  /* Current x value */
@@ -21,6 +14,13 @@ volatile uint8_t px = 1; /* Previous x value */
 volatile uint8_t py = 1; /* Previous y value */
 volatile uint8_t fx = 0; /* Food x location */
 volatile uint8_t fy = 0; /* Food y location */
+
+/* Shroom variables */
+uint8_t sx = 0;      /* Shroom x location */
+uint8_t sy = 0;      /* Shroom y location */
+uint8_t shroomTimeout = 0;    /* Cycles until shroom respawns */
+uint8_t shroomCycleCount = 0; /* Cycles since last shroom respawn */
+bool showShroom = false;      /* Shroom shown */
 
 volatile uint8_t score = 0;
 volatile bool gameOver = false;
@@ -32,6 +32,7 @@ volatile unsigned long tmillis = 0UL; /* Used to count milliseconds for game loo
 typedef struct {
   uint8_t x;
   uint8_t y;
+  enum direction d;
 } Position;
 
 Position tailArray[maxTail];
@@ -55,18 +56,12 @@ Position pollTail() {
 }
 /* /TAIL QUEUE */
 
-/* Current snake movement direction */
-enum direction {
-  NORTH,
-  SOUTH,
-  EAST,
-  WEST
-};
-
 /* Current direction of movement */
 volatile enum direction d = EAST;
 /* Previous direction */
 volatile enum direction pd = EAST;
+/* Previous previous direction - for head angle */
+enum direction ppd = EAST;
 
 /* Pre-loop initialisation code */
 void init() {
@@ -101,45 +96,6 @@ bool isTileInBody(uint8_t gx, uint8_t gy) {
   return hitTail;
 }
 
-/* Draw splash screen */
-void drawSplash() {
-  display_move(0, 60);
-  printf("  _________ _______      _____   ____  __.___________\n");
-  printf("/   _____/ \\      \\    /  _  \\ |    |/ _|\\_   _____/\n");
-  printf("\\_____  \\  /   |   \\  /  /_\\  \\|      <   |    __)_\n");
-  printf("/        \\/    |    \\/    |    \\    |  \\  |        \\\n");
-  printf("/_______  /\\____|__  /\\____|__  /____|__ \\/_______  /\n");
-  printf("        \\/         \\/         \\/        \\/        \\/");
-  display_move(110, 160);
-  printf("Welcome to Snake!");
-  display_move(60, 180);
-  printf("Press the center button to start.");
-}
-
-/* Fill body of snake in given tile */
-void fillBody(uint8_t gx, uint8_t gy) {
-  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, ORANGE);
-}
-
-/* Draw food in given tile */
-void drawFood(uint8_t gx, uint8_t gy) {
-  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, DARK_RED);
-}
-
-/* Clears a given tile */
-void clearTile(uint8_t gx, uint8_t gy) {
-  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, BLACK);
-}
-
-/* Draw game walls */
-void drawWalls() {
-  uint16_t col = GREEN;
-  fillRect(0, 0, grid_width * TILESIZE - 1, TILESIZE - 1, col);
-  fillRect(0, grid_height * TILESIZE - TILESIZE, grid_width * TILESIZE, TILESIZE, col);
-  fillRect(0, 0, TILESIZE - 1, grid_height * TILESIZE - 1, col);
-  fillRect(grid_width * TILESIZE - TILESIZE, 0, TILESIZE, grid_height * TILESIZE, col);
-}
-
 /* Main */
 void main() {
   init();
@@ -163,6 +119,8 @@ void main() {
       fy = rand() % (grid_height - 2) + 1;
     } while (isTileInBody(x, y));
 
+    shroomTimeout = rand() % 30 + 1; /* Set shroom timeout */
+
     sei(); /* Enable global interupts for button checking */
 
     /* Game loop */
@@ -176,8 +134,10 @@ void main() {
       ) {
         d = pd;
       } else {
+        ppd = pd;
         pd = d;
       }
+
       /* Perform food detection (i.e. eat food!) */
       if (x == fx && y == fy) {
         score++;
@@ -190,13 +150,37 @@ void main() {
         clearTile(p.x, p.y);
       }
 
+      /* Check shroom timeout */
+      if (shroomCycleCount == shroomTimeout) {
+        if (showShroom) clearTile(sx, sy); /* Clear old shroom sprite */
+        showShroom = !showShroom; /* Toggle show shroom */
+        do { /* Place new food - making sure not under snake */
+          sx = rand() % (grid_width - 2) + 1;
+          sy = rand() % (grid_height - 2) + 1;
+        } while (isTileInBody(fx, fy));
+        shroomTimeout = rand() % 40 + 1;
+        shroomCycleCount = 0;
+      } else {
+        shroomCycleCount++;
+      }
+
       /* Update positions of objects on screen */
-      drawFood(fx, fy);
-      fillBody(x, y);
+      drawApple(fx, fy);
+      if (showShroom) drawShroom(sx, sy);
+      if (tLength >= 2) fillBody(px, py);
+      if (tLength > 0) drawSnakeHead(x, y, ppd);
+      else drawSnakeBlob(x, y, ppd);
       Position h;
       h.x = x;
       h.y = y;
+      h.d = d;
       addTail(h);
+
+      /* Replace last tail with tail sprite */
+      if (tLength >= 2) {
+        Position t = tailArray[tFront];
+        drawSnakeTail(t.x, t.y, t.d);
+      }
 
       /* Update score */
       display_move(140, 1);
@@ -208,8 +192,8 @@ void main() {
         printf("X: %d, Y: %d  ", fx, fy);
       }
 
-      /* Run tail collision detection */
-      gameOver = isTileInBody(x, y);
+      gameOver = isTileInBody(x, y); /* Run tail collision detection */
+      if (!gameOver) gameOver = x == sx && y == sy; /* Shroom check */
 
       /* Handle movement*/
       px = x;
@@ -253,6 +237,8 @@ void main() {
     tRear = -1;
     tLength = 0;
     gameOver = false;
+    showShroom = false;
+    shroomCycleCount = 0;
   }
 }
 
