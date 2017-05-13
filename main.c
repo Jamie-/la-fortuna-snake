@@ -193,7 +193,7 @@ void main() {
       }
 
       gameOver = isTileInBody(x, y); /* Run tail collision detection */
-      gameOver = x == sx && y == sy; /* Shroom check */
+      if (!gameOver) gameOver = x == sx && y == sy; /* Shroom check */
 
       /* Handle movement*/
       px = x;
