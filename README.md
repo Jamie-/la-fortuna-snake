@@ -2,6 +2,8 @@
 
 Snake game for the LaFortuna from the University of Southampton.
 
+Images of the game in action can be found [here](http://imgur.com/a/6KrAi).
+
 You can either compile and flash from source or flash the included hex file in `bin/snake.hex`. Both of these require `dfu-programmer` to be installed and setup correctly. For compiling you will also need `avr-gcc` and `avr-objcopy`.
 
 ## Compiling ##
