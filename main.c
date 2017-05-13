@@ -32,6 +32,7 @@ volatile unsigned long tmillis = 0UL; /* Used to count milliseconds for game loo
 typedef struct {
   uint8_t x;
   uint8_t y;
+  enum direction d;
 } Position;
 
 Position tailArray[maxTail];
@@ -166,12 +167,19 @@ void main() {
       /* Update positions of objects on screen */
       drawApple(fx, fy);
       if (showShroom) drawShroom(sx, sy);
-      if (tLength > 0) fillBody(px, py);
+      if (tLength >= 2) fillBody(px, py);
       drawSnakeHead(x, y, ppd);
       Position h;
       h.x = x;
       h.y = y;
+      h.d = d;
       addTail(h);
+
+      /* Replace last tail with tail sprite */
+      if (tLength >= 2) {
+        Position t = tailArray[tFront];
+        drawSnakeTail(t.x, t.y, t.d);
+      }
 
       /* Update score */
       display_move(140, 1);

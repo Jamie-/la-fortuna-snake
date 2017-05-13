@@ -145,3 +145,11 @@ void drawSnakeHead(uint16_t x, uint16_t y, enum direction d) {
   else if (d == WEST) drawSprite270(x, y, snake_head_sprite);
   else /* EAST */ drawSprite90(x, y, snake_head_sprite);
 }
+
+/* Draw snake tail sprite */
+void drawSnakeTail(uint16_t x, uint16_t y, enum direction d) {
+  if (d == NORTH) drawSprite(x, y, snake_tail_sprite);
+  else if (d == SOUTH) drawSprite180(x, y, snake_tail_sprite);
+  else if (d == WEST) drawSprite270(x, y, snake_tail_sprite);
+  else /* EAST */ drawSprite90(x, y, snake_tail_sprite);
+}
