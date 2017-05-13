@@ -40,11 +40,6 @@ void drawPixel(uint16_t x, uint16_t y, uint16_t col) {
   fillRect(x, y, 0, 0, col);
 }
 
-/* Fill head of snake in given tile */
-void fillHead(uint8_t gx, uint8_t gy) {
-  fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, ORANGE_RED);
-}
-
 /* Fill body of snake in given tile */
 void fillBody(uint8_t gx, uint8_t gy) {
   fillSquare(TILESIZE * gx, TILESIZE * gy, TILESIZE, ORANGE);
