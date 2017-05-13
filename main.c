@@ -168,7 +168,8 @@ void main() {
       drawApple(fx, fy);
       if (showShroom) drawShroom(sx, sy);
       if (tLength >= 2) fillBody(px, py);
-      drawSnakeHead(x, y, ppd);
+      if (tLength > 0) drawSnakeHead(x, y, ppd);
+      else drawSnakeBlob(x, y, ppd);
       Position h;
       h.x = x;
       h.y = y;

@@ -138,6 +138,14 @@ void drawShroom(uint16_t x, uint16_t y) {
   drawSprite(x, y, shroom_sprite);
 }
 
+/* Draw snake blob sprite */
+void drawSnakeBlob(uint16_t x, uint16_t y, enum direction d) {
+  if (d == NORTH) drawSprite(x, y, snake_blob_sprite);
+  else if (d == SOUTH) drawSprite180(x, y, snake_blob_sprite);
+  else if (d == WEST) drawSprite270(x, y, snake_blob_sprite);
+  else /* EAST */ drawSprite90(x, y, snake_blob_sprite);
+}
+
 /* Draw snake head sprite */
 void drawSnakeHead(uint16_t x, uint16_t y, enum direction d) {
   if (d == NORTH) drawSprite(x, y, snake_head_sprite);

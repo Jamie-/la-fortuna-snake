@@ -22,5 +22,6 @@ void fillBody(uint8_t gx, uint8_t gy);
 void clearTile(uint8_t gx, uint8_t gy);
 void drawApple(uint16_t x, uint16_t y);
 void drawShroom(uint16_t x, uint16_t y);
+void drawSnakeBlob(uint16_t x, uint16_t y, enum direction d);
 void drawSnakeHead(uint16_t x, uint16_t y, enum direction d);
 void drawSnakeTail(uint16_t x, uint16_t y, enum direction d);
