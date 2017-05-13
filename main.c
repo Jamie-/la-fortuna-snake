@@ -55,18 +55,12 @@ Position pollTail() {
 }
 /* /TAIL QUEUE */
 
-/* Current snake movement direction */
-enum direction {
-  NORTH,
-  SOUTH,
-  EAST,
-  WEST
-};
-
 /* Current direction of movement */
 volatile enum direction d = EAST;
 /* Previous direction */
 volatile enum direction pd = EAST;
+/* Previous previous direction - for head angle */
+enum direction ppd = EAST;
 
 /* Pre-loop initialisation code */
 void init() {
@@ -139,8 +133,10 @@ void main() {
       ) {
         d = pd;
       } else {
+        ppd = pd;
         pd = d;
       }
+
       /* Perform food detection (i.e. eat food!) */
       if (x == fx && y == fy) {
         score++;
@@ -171,7 +167,7 @@ void main() {
       drawApple(fx, fy);
       if (showShroom) drawShroom(sx, sy);
       if (tLength > 0) fillBody(px, py);
-      fillHead(x, y);
+      drawSnakeHead(x, y, ppd);
       Position h;
       h.x = x;
       h.y = y;

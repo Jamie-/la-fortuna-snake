@@ -80,6 +80,54 @@ void drawSprite(uint16_t x, uint16_t y, const uint16_t *sprite) {
   }
 }
 
+/* Draw sprite from colour array to screen rotated 90 */
+void drawSprite90(uint16_t x, uint16_t y, const uint16_t *sprite) {
+  x = x * TILESIZE + 9;
+  y *= TILESIZE;
+  uint16_t oy = y + TILESIZE;
+  uint8_t i;
+  for (i = 0; i < 10 * TILESIZE; i++) {
+    drawPixel(x, y, sprite[i]);
+    y++;
+    if (y >= oy) {
+      y -= TILESIZE;
+      x--;
+    }
+  }
+}
+
+/* Draw sprite from colour array to screen rotated 180 */
+void drawSprite180(uint16_t x, uint16_t y, const uint16_t *sprite) {
+  x *= TILESIZE;
+  y = y * TILESIZE + 9;
+  uint16_t ox = x + TILESIZE;
+  uint8_t i;
+  for (i = 0; i < 10 * TILESIZE; i++) {
+    drawPixel(x, y, sprite[i]);
+    x++;
+    if (x >= ox) {
+      x -= TILESIZE;
+      y--;
+    }
+  }
+}
+
+/* Draw sprite from colour array to screen rotated 270 */
+void drawSprite270(uint16_t x, uint16_t y, const uint16_t *sprite) {
+  x *= TILESIZE;
+  y *= TILESIZE;
+  uint16_t oy = y + TILESIZE;
+  uint8_t i;
+  for (i = 0; i < 10 * TILESIZE; i++) {
+    drawPixel(x, y, sprite[i]);
+    y++;
+    if (y >= oy) {
+      y -= TILESIZE;
+      x++;
+    }
+  }
+}
+
 /* Draw apple sprite */
 void drawApple(uint16_t x, uint16_t y) {
   drawSprite(x, y, apple_sprite);
@@ -88,4 +136,12 @@ void drawApple(uint16_t x, uint16_t y) {
 /* Draw shroom sprite */
 void drawShroom(uint16_t x, uint16_t y) {
   drawSprite(x, y, shroom_sprite);
+}
+
+/* Draw snake head sprite */
+void drawSnakeHead(uint16_t x, uint16_t y, enum direction d) {
+  if (d == NORTH) drawSprite(x, y, snake_head_sprite);
+  else if (d == SOUTH) drawSprite180(x, y, snake_head_sprite);
+  else if (d == WEST) drawSprite270(x, y, snake_head_sprite);
+  else /* EAST */ drawSprite90(x, y, snake_head_sprite);
 }
