@@ -5,27 +5,26 @@
 #include "draw.h"
 #include "input.h"
 
-#define DEBUG 0 /* Debug mode, set to 1 for debug data */
-
 /* Position values */
-volatile uint8_t x = 5;  /* Current x value */
-volatile uint8_t y = 5;  /* Current y value */
-volatile uint8_t px = 1; /* Previous x value */
-volatile uint8_t py = 1; /* Previous y value */
-volatile uint8_t fx = 0; /* Food x location */
-volatile uint8_t fy = 0; /* Food y location */
+uint8_t x =  5; /* Current x value */
+uint8_t y =  5; /* Current y value */
+uint8_t px = 1; /* Previous x value */
+uint8_t py = 1; /* Previous y value */
 
 /* Shroom variables */
-uint8_t sx = 0;      /* Shroom x location */
-uint8_t sy = 0;      /* Shroom y location */
+uint8_t sx = 0; /* x location */
+uint8_t sy = 0; /* y location */
 uint8_t shroomTimeout = 0;    /* Cycles until shroom respawns */
 uint8_t shroomCycleCount = 0; /* Cycles since last shroom respawn */
 bool showShroom = false;      /* Shroom shown */
 
-volatile uint8_t score = 0;
-volatile bool gameOver = false;
+/* Food variables */
+uint8_t fx = 0; /* x location */
+uint8_t fy = 0; /* y location */
+uint8_t score = 0;
 
-volatile unsigned long tmillis = 0UL; /* Used to count milliseconds for game loop */
+bool gameOver = false;
+unsigned long tmillis = 0UL; /* Used to count milliseconds for game loop */
 
 /* TAIL QUEUE */
 #define maxTail 40
@@ -59,7 +58,7 @@ Position pollTail() {
 /* Current direction of movement */
 volatile enum direction d = EAST;
 /* Previous direction */
-volatile enum direction pd = EAST;
+enum direction pd = EAST;
 /* Previous previous direction - for head angle */
 enum direction ppd = EAST;
 
@@ -186,12 +185,6 @@ void main() {
       display_move(140, 1);
       printf("Score: %d", score);
 
-      /* Print current position to screen */
-      if (DEBUG) {
-        display_move(1, 1);
-        printf("X: %d, Y: %d  ", fx, fy);
-      }
-
       gameOver = isTileInBody(x, y); /* Run tail collision detection */
       if (!gameOver) gameOver = x == sx && y == sy; /* Shroom check */
 
@@ -216,7 +209,7 @@ void main() {
     set_bg(BLACK);
     set_fg(WHITE);
     drawWalls();
-    //clear_screen();
+    //clear_screen(); // Disabled to make Fortuna look interesting on demo days
     display_move(130, 80);
     printf("Game Over!");
     display_move(135, 100);
@@ -251,27 +244,3 @@ ISR( TIMER0_COMPA_vect ) {
   if (WEST_PRESSED && d != EAST)   d = WEST;
   sei();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**/
