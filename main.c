@@ -189,7 +189,7 @@ void main() {
       /* Print current position to screen */
       if (DEBUG) {
         display_move(1, 1);
-        printf("X: %d, Y: %d  ",fx ,fy);
+        printf("X: %d, Y: %d  ", fx, fy);
       }
 
       gameOver = isTileInBody(x, y); /* Run tail collision detection */
@@ -206,7 +206,7 @@ void main() {
       /* Speed up game as score increases */
       if (score <= 5) _delay_ms(250);
       else if (score <= 10) _delay_ms(200);
-      else if (score <= 15) _delay_ms(150);
+      else if (score <= 20) _delay_ms(150);
       else _delay_ms(100);
     } while (x < grid_width-1 && x > 0 && y < grid_height-1 && y > 0 && !gameOver);
 
